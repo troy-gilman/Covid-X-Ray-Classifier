@@ -9,16 +9,23 @@ train_targets = np.load(dataset_path + "train_targets.npy")
 test_features = np.load(dataset_path + "test_features.npy")
 test_targets = np.load(dataset_path + "test_targets.npy")
 
-print("Size of test dataset: ", test_features.shape[0])
-print("Size of train dataset: ", train_features.shape[0])
 
-# Create a classifier: a support vector classifier
-classifier = svm.SVC(kernel="poly", degree=6)
-classifier.fit(train_features, train_targets)
+def run_svm(train_set, test_set):
+    print("Size of train dataset: ", train_set[0].shape[0])
+    print("Size of test dataset: ", test_set[0].shape[0])
 
-# Now predict the value of the digit on the second half:
-predicted = classifier.predict(test_features)
+    # Create a classifier: a support vector classifier
+    classifier = svm.SVC(kernel="poly", degree=6)
+    classifier.fit(train_set[0], train_set[1])
 
-print("Classification report for classifier %s:\n%s\n"
-      % (classifier, metrics.classification_report(test_targets, predicted)))
-print("Confusion matrix:\n%s" % metrics.confusion_matrix(test_targets, predicted))
+    # Now predict the value of the digit on the second half:
+    predicted = classifier.predict(test_set[0])
+
+    print("Classification report for classifier %s:\n%s\n"
+          % (classifier, metrics.classification_report(test_set[1], predicted)))
+    print()
+
+
+run_svm((train_features[:10], train_targets[:10]), (test_features, test_targets))
+run_svm((train_features[10:110], train_targets[10:110]), (test_features, test_targets))
+run_svm((train_features[110:], train_targets[110:]), (test_features, test_targets))

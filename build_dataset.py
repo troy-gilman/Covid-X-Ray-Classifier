@@ -3,6 +3,7 @@ import numpy as np
 from random import shuffle
 import cv2
 
+TEST_SPLIT = 0.2
 IMG_RES = (224, 224)
 DATASETS = ["kaggle", "covid-chestxray-dataset"]
 IMG_PATH = "images/"
@@ -31,7 +32,7 @@ def build_dataset(dataset_name="combined"):
                 targets.append(c)
 
     n_samples = len(features)
-    test_size = int(n_samples / 10)
+    test_size = int(n_samples * TEST_SPLIT)
     train_size = n_samples - test_size
     print("Size of dataset " + dataset_name + ":", n_samples)
 

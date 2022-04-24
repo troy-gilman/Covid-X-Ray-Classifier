@@ -26,6 +26,7 @@ def run_svm(train_set, test_set):
     print()
 
 
-run_svm((train_features[:10], train_targets[:10]), (test_features, test_targets))
-run_svm((train_features[10:110], train_targets[10:110]), (test_features, test_targets))
-run_svm((train_features[110:], train_targets[110:]), (test_features, test_targets))
+run_svm((train_features[:5], train_targets[:5]), (test_features, test_targets))
+run_svm((train_features[5:15], train_targets[5:15]), (test_features, test_targets))
+run_svm((train_features[15:115], train_targets[15:115]), (test_features, test_targets))
+run_svm((train_features[115:215], train_targets[115:215]), (test_features, test_targets))

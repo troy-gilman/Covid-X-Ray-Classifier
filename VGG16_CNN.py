@@ -36,7 +36,7 @@ args = vars(ap.parse_args())
 # initialize the initial learning rate, number of epochs to train for,
 # and batch size
 INIT_LR = 1e-3
-EPOCHS = 25
+EPOCHS = 12
 BS = 8
 
 # grab the list of images in our dataset directory, then initialize

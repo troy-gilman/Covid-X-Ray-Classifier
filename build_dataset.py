@@ -5,8 +5,9 @@ import cv2
 import matplotlib.pyplot as plt
 
 IMG_RES = (224, 224)
-IMG_PATH = "images/kaggle/"
-DATASET_PATH = "datasets/kaggle/"
+DATASET = "covid-chestxray-dataset"
+IMG_PATH = "images/" + DATASET + "/"
+DATASET_PATH = "datasets/" + DATASET + "/"
 CLASSES = {0: 'normal', 1: 'covid'}
 
 features = []

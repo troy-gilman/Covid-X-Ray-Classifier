@@ -106,13 +106,13 @@ for layer in baseModel.layers:
 
 # compile our model
 print("[INFO] compiling model...")
-opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
+opt = Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS)
 model.compile(loss="binary_crossentropy", optimizer=opt,
 	metrics=["accuracy"])
 
 # train the head of the network
 print("[INFO] training head...")
-H = model.fit_generator(
+H = model.fit(
 	trainAug.flow(trainX, trainY, batch_size=BS),
 	steps_per_epoch=len(trainX) // BS,
 	validation_data=(testX, testY),
@@ -146,7 +146,7 @@ print("sensitivity: {:.4f}".format(sensitivity))
 print("specificity: {:.4f}".format(specificity))
 
 # plot the training loss and accuracy
-N = EPOCHS
+N = EPOCHS + 1
 plt.style.use("ggplot")
 plt.figure()
 plt.plot(np.arange(1, N), H.history["loss"], label="train_loss")

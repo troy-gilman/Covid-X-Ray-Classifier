@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import svm, metrics
 
-dataset_path = "datasets/covid-chestxray-dataset/"
+dataset_path = "datasets/combined/"
 
 train_features = np.load(dataset_path + "train_features.npy")
 train_targets = np.load(dataset_path + "train_targets.npy")

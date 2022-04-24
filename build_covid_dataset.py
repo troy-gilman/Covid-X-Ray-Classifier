@@ -9,10 +9,8 @@ import os
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-c", "--covid", required=True,
-	help="path to base directory for COVID-19 dataset")
-ap.add_argument("-o", "--output", required=True,
-	help="path to directory where 'normal' images will be stored")
+ap.add_argument("-c", "--covid", required=True, help="path to base directory for COVID-19 dataset")
+ap.add_argument("-o", "--output", required=True, help="path to directory where 'normal' images will be stored")
 args = vars(ap.parse_args())
 
 # construct the path to the metadata CSV file and load it

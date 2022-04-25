@@ -21,8 +21,19 @@ def run_svm(train_set, test_set):
     # Now predict the value of the digit on the second half:
     predicted = classifier.predict(test_set[0])
 
-    print("Classification report for classifier %s:\n%s\n"
-          % (classifier, metrics.classification_report(test_set[1], predicted)))
+    # Report metrics
+    # print(metrics.classification_report(test_set[1], predicted))
+    cm = metrics.confusion_matrix(test_set[1], predicted)
+    total = sum(sum(cm))
+    acc = (cm[0, 0] + cm[1, 1]) / total
+    sensitivity = cm[0, 0] / (cm[0, 0] + cm[0, 1])
+    specificity = cm[1, 1] / (cm[1, 0] + cm[1, 1])
+
+    # show the confusion matrix, accuracy, sensitivity, and specificity
+    # print(cm)
+    print("acc: {:.4f}".format(acc))
+    print("sensitivity: {:.4f}".format(sensitivity))
+    print("specificity: {:.4f}".format(specificity))
     print()
 
 

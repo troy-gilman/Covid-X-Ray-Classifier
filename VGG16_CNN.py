@@ -4,24 +4,16 @@
 # import the necessary packages
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import VGG16
-from tensorflow.keras.layers import AveragePooling2D
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import Flatten
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import AveragePooling2D, Dropout, Flatten, Dense, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
 from sklearn.preprocessing import LabelBinarizer
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-from imutils import paths
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import cv2
-import os
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -39,55 +31,25 @@ INIT_LR = 1e-3
 EPOCHS = 12
 BS = 8
 
-# grab the list of images in our dataset directory, then initialize
-# the list of data (i.e., images) and class images
-print("[INFO] loading images...")
-imagePaths = list(paths.list_images(args["dataset"]))
-data = []
-labels = []
+train_features = np.load(args['dataset'] + "/train_features.npy").reshape((-1, 224, 224, 3))[:100]
+train_targets = np.load(args['dataset'] + "/train_targets.npy")[:100]
+test_features = np.load(args['dataset'] + "/test_features.npy").reshape((-1, 224, 224, 3))
+test_targets = np.load(args['dataset'] + "/test_targets.npy")
 
-# loop over the image paths
-for imagePath in imagePaths:
-	# extract the class label from the filename
-	label = imagePath.split(os.path.sep)[-2]
-
-	# load the image, swap color channels, and resize it to be a fixed
-	# 224x224 pixels while ignoring aspect ratio
-	image = cv2.imread(imagePath)
-	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-	image = cv2.resize(image, (224, 224))
-
-	# update the data and labels lists, respectively
-	data.append(image)
-	labels.append(label)
-
-# convert the data and labels to NumPy arrays while scaling the pixel
-# intensities to the range [0, 255]
-data = np.array(data) / 255.0
-labels = np.array(labels)
+# train_features = np.repeat(train_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
+# test_features = np.repeat(test_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
 
 # perform one-hot encoding on the labels
 lb = LabelBinarizer()
-labels = lb.fit_transform(labels)
-labels = to_categorical(labels)
+train_targets = lb.fit_transform(train_targets)
+train_targets = to_categorical(train_targets)
+test_targets = lb.fit_transform(test_targets)
+test_targets = to_categorical(test_targets)
 
-# partition the data into training and testing splits using 80% of
-# the data for training and the remaining 20% for testing
-(trainX, testX, trainY, testY) = train_test_split(data, labels,
-	test_size=0.20, stratify=labels, random_state=42)
+# load the VGG16 network, ensuring the head FC layer sets are left off
+baseModel = VGG16(weights="imagenet", include_top=False, input_tensor=Input(shape=(224, 224, 3)))
 
-# initialize the training data augmentation object
-trainAug = ImageDataGenerator(
-	rotation_range=15,
-	fill_mode="nearest")
-
-# load the VGG16 network, ensuring the head FC layer sets are left
-# off
-baseModel = VGG16(weights="imagenet", include_top=False,
-	input_tensor=Input(shape=(224, 224, 3)))
-
-# construct the head of the model that will be placed on top of the
-# the base model
+# construct the head of the model that will be placed on top of the base model
 headModel = baseModel.output
 headModel = AveragePooling2D(pool_size=(4, 4))(headModel)
 headModel = Flatten(name="flatten")(headModel)
@@ -107,33 +69,37 @@ for layer in baseModel.layers:
 # compile our model
 print("[INFO] compiling model...")
 opt = Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS)
-model.compile(loss="binary_crossentropy", optimizer=opt,
-	metrics=["accuracy"])
+
+model.compile(loss="binary_crossentropy", optimizer=opt, metrics=["accuracy"])
+
+# initialize the training data augmentation object
+trainAug = ImageDataGenerator(
+	rotation_range=15,
+	fill_mode="nearest")
 
 # train the head of the network
 print("[INFO] training head...")
 H = model.fit(
-	trainAug.flow(trainX, trainY, batch_size=BS),
-	steps_per_epoch=len(trainX) // BS,
-	validation_data=(testX, testY),
-	validation_steps=len(testX) // BS,
+	trainAug.flow(train_features, train_targets, batch_size=BS),
+	steps_per_epoch=len(train_features) // BS,
+	validation_data=(test_features, test_targets),
+	validation_steps=len(test_features) // BS,
 	epochs=EPOCHS)
 
 # make predictions on the testing set
 print("[INFO] evaluating network...")
-predIdxs = model.predict(testX, batch_size=BS)
+predIdxs = model.predict(test_features, batch_size=BS)
 
 # for each image in the testing set we need to find the index of the
 # label with corresponding largest predicted probability
 predIdxs = np.argmax(predIdxs, axis=1)
 
 # show a nicely formatted classification report
-print(classification_report(testY.argmax(axis=1), predIdxs,
-	target_names=lb.classes_))
+print(classification_report(test_targets.argmax(axis=1), predIdxs))
 
-# compute the confusion matrix and and use it to derive the raw
+# compute the confusion matrix and use it to derive the raw
 # accuracy, sensitivity, and specificity
-cm = confusion_matrix(testY.argmax(axis=1), predIdxs)
+cm = confusion_matrix(test_targets.argmax(axis=1), predIdxs)
 total = sum(sum(cm))
 acc = (cm[0, 0] + cm[1, 1]) / total
 sensitivity = cm[0, 0] / (cm[0, 0] + cm[0, 1])

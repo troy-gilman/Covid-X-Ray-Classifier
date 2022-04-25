@@ -22,14 +22,24 @@ def build_dataset(dataset_name="combined"):
 
     # Load images and their class into features and targets
     for dataset in dataset_list:
+        class_features = {0: [], 1: []}
+        class_targets = {0: [], 1: []}
         for c in CLASSES.keys():
             dir_path = IMG_PATH + dataset + "/" + CLASSES[c]
             for file in os.listdir(dir_path):
                 image = cv2.imread(dir_path + "/" + str(file))
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 image = cv2.resize(image, IMG_RES)
-                features.append(image)
-                targets.append(c)
+                class_features[c].append(image)
+                class_targets[c].append(c)
+
+        min_class_count = min(len(class_features[0]), len(class_features[1]))
+        class_features[0] = class_features[0][:min_class_count]
+        class_targets[0] = class_targets[0][:min_class_count]
+        class_features[1] = class_features[1][:min_class_count]
+        class_targets[1] = class_targets[1][:min_class_count]
+        features += class_features[0] + class_features[1]
+        targets += class_targets[0] + class_targets[1]
 
     n_samples = len(features)
     test_size = int(n_samples * TEST_SPLIT)
@@ -50,8 +60,8 @@ def build_dataset(dataset_name="combined"):
     test_targets = np.array(targets_shuf[:test_size])
     train_features = np.array(features_shuf[test_size:]).reshape((train_size, -1)) / 255.0
     train_targets = np.array(targets_shuf[test_size:])
-    print("Size of test dataset: ", test_features.shape[0])
-    print("Size of train dataset: ", train_features.shape[0])
+    print("Size of test set: ", test_features.shape[0])
+    print("Size of train set: ", train_features.shape[0])
     print()
 
     # Save arrays

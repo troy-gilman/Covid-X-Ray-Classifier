@@ -31,13 +31,13 @@ INIT_LR = 1e-3
 EPOCHS = 12
 BS = 8
 
-train_features = np.load(args['dataset'] + "/train_features.npy")
-train_targets = np.load(args['dataset'] + "/train_targets.npy")
-test_features = np.load(args['dataset'] + "/test_features.npy")
+train_features = np.load(args['dataset'] + "/train_features.npy").reshape((-1, 224, 224, 3))[:100]
+train_targets = np.load(args['dataset'] + "/train_targets.npy")[:100]
+test_features = np.load(args['dataset'] + "/test_features.npy").reshape((-1, 224, 224, 3))
 test_targets = np.load(args['dataset'] + "/test_targets.npy")
 
-train_features = np.repeat(train_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
-test_features = np.repeat(test_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
+# train_features = np.repeat(train_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
+# test_features = np.repeat(test_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
 
 # perform one-hot encoding on the labels
 lb = LabelBinarizer()

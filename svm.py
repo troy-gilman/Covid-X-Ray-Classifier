@@ -25,7 +25,7 @@ def run_svm(train_set, test_set):
     print('[INFO] Test set size:', test_set_n)
 
     # Create a classifier: a support vector classifier
-    classifier = svm.SVC(kernel="poly", degree=6)
+    classifier = svm.SVC(kernel="rbf")
     classifier.fit(train_set[0], train_set[1])
 
     # Now predict the value of the digit on the second half:
@@ -35,7 +35,7 @@ def run_svm(train_set, test_set):
     # print(metrics.classification_report(test_set[1], predicted))
     cm = metrics.confusion_matrix(test_set[1], predicted)
     total = sum(sum(cm))
-    acc = (cm[0, 0] + cm[1, 1]) / total
+    acc = (cm[0, 0] + cm[1, 1] + cm[2, 2]) / total
     sensitivity = cm[0, 0] / (cm[0, 0] + cm[0, 1])
     specificity = cm[1, 1] / (cm[1, 0] + cm[1, 1])
 

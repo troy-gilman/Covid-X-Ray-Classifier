@@ -30,6 +30,7 @@ def plot_cm(file_path, n, cm):
 
 
 def plot_acc(file_path, model_type, accuracies):
+    plt.style.use("ggplot")
     plt.figure()
     plt.plot(accuracies.keys(), accuracies.values())
     plt.scatter(accuracies.keys(), accuracies.values(), label="val_acc")

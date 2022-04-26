@@ -1,5 +1,7 @@
 # USAGE
-# python train.py --dataset dataset
+# python VGG16_CNN.py --dataset datasets/kaggle                
+# python VGG16_CNN.py --dataset datasets/covid-chestxray-dataset
+# python VGG16_CNN.py --dataset datasets/combined
 
 # import the necessary packages
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -8,6 +10,7 @@ from tensorflow.keras.layers import AveragePooling2D, Dropout, Flatten, Dense, I
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
+from keras.utils.vis_utils import plot_model
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -30,11 +33,14 @@ args = vars(ap.parse_args())
 INIT_LR = 1e-3
 EPOCHS = 12
 BS = 8
+total_size = 50    #total size of 3 datasets resp 50,340,390
+train_size =total_size*0.8
+test_size=total_size*0.2
 
-train_features = np.load(args['dataset'] + "/train_features.npy").reshape((-1, 224, 224, 3))[:100]
-train_targets = np.load(args['dataset'] + "/train_targets.npy")[:100]
-test_features = np.load(args['dataset'] + "/test_features.npy").reshape((-1, 224, 224, 3))
-test_targets = np.load(args['dataset'] + "/test_targets.npy")
+train_features = np.load(args['dataset'] + "/train_features.npy").reshape((-1, 224, 224, 3))[:train_size]
+train_targets = np.load(args['dataset'] + "/train_targets.npy")[:train_size]
+test_features = np.load(args['dataset'] + "/test_features.npy").reshape((-1, 224, 224, 3))[:test_size]
+test_targets = np.load(args['dataset'] + "/test_targets.npy")[:test_size]
 
 # train_features = np.repeat(train_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
 # test_features = np.repeat(test_features[:, :, np.newaxis], 3, -1).reshape((-1, 224, 224, 3))
@@ -72,6 +78,12 @@ opt = Adam(learning_rate=INIT_LR, decay=INIT_LR / EPOCHS)
 
 model.compile(loss="binary_crossentropy", optimizer=opt, metrics=["accuracy"])
 
+##summerize model
+print(model.summary())
+
+##visualize the model 
+plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+
 # initialize the training data augmentation object
 trainAug = ImageDataGenerator(
 	rotation_range=15,
@@ -85,6 +97,7 @@ H = model.fit(
 	validation_data=(test_features, test_targets),
 	validation_steps=len(test_features) // BS,
 	epochs=EPOCHS)
+
 
 # make predictions on the testing set
 print("[INFO] evaluating network...")

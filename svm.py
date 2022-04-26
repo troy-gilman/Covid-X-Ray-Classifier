@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import svm, metrics
 import argparse
+import plot
 
 
 # construct the argument parser and parse the arguments
@@ -11,13 +12,15 @@ args = vars(ap.parse_args())
 
 train_features = np.load(args['dataset'] + "/train_features.npy")
 train_targets = np.load(args['dataset'] + "/train_targets.npy")
-test_features = np.load(args['dataset'] + "/test_features.npy")
-test_targets = np.load(args['dataset'] + "/test_targets.npy")
+test_features = np.load(args['dataset'] + "/test_features.npy")[:100]
+test_targets = np.load(args['dataset'] + "/test_targets.npy")[:100]
 
 
 def run_svm(train_set, test_set):
-    print("[INFO] Size of train dataset: ", train_set[0].shape[0])
-    print("[INFO] Size of test dataset: ", test_set[0].shape[0])
+    train_set_n = train_set[0].shape[0]
+    test_set_n = test_set[0].shape[0]
+    print('[INFO] Train set size:', train_set_n)
+    print('[INFO] Test set size:', test_set_n)
 
     # Create a classifier: a support vector classifier
     classifier = svm.SVC(kernel="poly", degree=6)
@@ -39,6 +42,9 @@ def run_svm(train_set, test_set):
     print("[INFO] Accuracy: {:.4f}".format(acc))
     print("[INFO] Sensitivity: {:.4f}".format(sensitivity))
     print("[INFO] Specificity: {:.4f}".format(specificity))
+
+    plot.plot_cm('plots/svm_' + str(train_set_n) + '_cm.png', train_set_n, cm)
+
     print()
     return acc
 
@@ -46,13 +52,7 @@ def run_svm(train_set, test_set):
 accuracies = {}
 accuracies[20] = run_svm([train_features[:20], train_targets[:20]], [test_features, test_targets])
 accuracies[50] = run_svm([train_features[20:70], train_targets[20:70]], [test_features, test_targets])
-accuracies[100] = run_svm([train_features[70:170], train_targets[70:170]], [test_features, test_targets])
+accuracies[200] = run_svm([train_features[70:270], train_targets[70:270]], [test_features, test_targets])
+accuracies[500] = run_svm([train_features[270:770], train_targets[270:770]], [test_features, test_targets])
 
-plt.figure()
-plt.plot(accuracies.keys(), accuracies.values())
-plt.scatter(accuracies.keys(), accuracies.values(), label="val_acc")
-plt.title("Validation Accuracy on COVID-19 Dataset")
-plt.xlabel("# Training Samples")
-plt.ylabel("Accuracy")
-plt.legend(loc="upper left")
-plt.savefig('svm_acc_plot.png')
+plot.plot_acc('plots/svm_acc_plot.png', 'SVM', accuracies)

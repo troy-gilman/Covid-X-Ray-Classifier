@@ -14,9 +14,9 @@ from keras.utils.vis_utils import plot_model
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+import plot
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -27,7 +27,7 @@ args = vars(ap.parse_args())
 # initialize the initial learning rate, number of epochs to train for,
 # and batch size
 INIT_LR = 1e-3
-EPOCHS = 3
+EPOCHS = 15
 BS = 10
 
 train_features = np.load(args['dataset'] + "/train_features.npy").reshape((-1, 224, 224, 3))
@@ -45,9 +45,9 @@ def run_cnn(train_set, test_set):
 	# perform one-hot encoding on the labels
 	lb = LabelBinarizer()
 	train_set[1] = lb.fit_transform(train_set[1])
-	#train_set[1] = to_categorical(train_set[1])
+	# train_set[1] = to_categorical(train_set[1])
 	test_set[1] = lb.fit_transform(test_set[1])
-	#test_set[1] = to_categorical(test_set[1])
+	# test_set[1] = to_categorical(test_set[1])
 
 	# load the VGG16 network, ensuring the head FC layer sets are left off
 	base_model = VGG16(weights="imagenet", include_top=False, input_tensor=Input(shape=(224, 224, 3)))
@@ -111,7 +111,7 @@ def run_cnn(train_set, test_set):
 	# accuracy, sensitivity, and specificity
 	cm = confusion_matrix(actual_classes, pred_classes)
 	total = sum(sum(cm))
-	acc = (cm[0, 0] + cm[1, 1]) / total
+	acc = (cm[0, 0] + cm[1, 1] + cm[2, 2]) / total
 	sensitivity = cm[0, 0] / (cm[0, 0] + cm[0, 1])
 	specificity = cm[1, 1] / (cm[1, 0] + cm[1, 1])
 
@@ -122,18 +122,16 @@ def run_cnn(train_set, test_set):
 	print("[INFO] Specificity: {:.4f}".format(specificity))
 
 	# plot the training loss and accuracy
-	N = EPOCHS + 1
-	plt.style.use("ggplot")
-	plt.figure()
-	plt.plot(np.arange(1, N), H.history["loss"], label="train_loss")
-	plt.plot(np.arange(1, N), H.history["val_loss"], label="val_loss")
-	plt.plot(np.arange(1, N), H.history["accuracy"], label="train_acc")
-	plt.plot(np.arange(1, N), H.history["val_accuracy"], label="val_acc")
-	plt.title("Training/Validation Loss and Accuracy on COVID-19 Dataset")
-	plt.xlabel("Epoch #")
-	plt.ylabel("Loss/Accuracy")
-	plt.legend(loc="lower left")
-	plt.savefig('cnn_' + str(train_set_n) + '_plot.png')
+	plot.plot_epochs(
+		'plots/cnn_' + str(train_set_n) + '_plot.png',
+		train_set_n,
+		np.arange(1, EPOCHS + 1),
+		H.history["loss"],
+		H.history["val_loss"],
+		H.history["accuracy"],
+		H.history["val_accuracy"])
+
+	plot.plot_cm('plots/cnn_' + str(train_set_n) + '_cm.png', train_set_n, cm)
 
 	# serialize the model to disk
 	# print("[INFO] Saving COVID-19 detector model...")
@@ -145,14 +143,7 @@ def run_cnn(train_set, test_set):
 accuracies = {}
 accuracies[20] = run_cnn([train_features[:20], train_targets[:20]], [test_features, test_targets])
 accuracies[50] = run_cnn([train_features[20:70], train_targets[20:70]], [test_features, test_targets])
-accuracies[100] = run_cnn([train_features[70:170], train_targets[70:170]], [test_features, test_targets])
-accuracies[500] = run_cnn([train_features[170:670], train_targets[170:670]], [test_features, test_targets])
+accuracies[200] = run_cnn([train_features[70:270], train_targets[70:270]], [test_features, test_targets])
+accuracies[500] = run_cnn([train_features[270:770], train_targets[270:770]], [test_features, test_targets])
 
-plt.figure()
-plt.plot(accuracies.keys(), accuracies.values())
-plt.scatter(accuracies.keys(), accuracies.values(), label="val_acc")
-plt.title("Validation Accuracy on COVID-19 Dataset")
-plt.xlabel("# Training Samples")
-plt.ylabel("Accuracy")
-plt.legend(loc="upper left")
-plt.savefig('cnn_acc_plot.png')
+plot.plot_acc('plots/cnn_acc_plot.png', 'CNN', accuracies)

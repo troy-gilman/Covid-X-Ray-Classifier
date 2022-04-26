@@ -3,13 +3,17 @@ import numpy as np
 from random import shuffle
 import cv2
 from tqdm import tqdm
+import argparse
 
 TEST_SPLIT = 0.2
 IMG_RES = (224, 224)
-DATASETS = ["kaggle"]
-IMG_PATH = "images/"
 BUILD_PATH = "datasets/"
 CLASSES = {0: 'normal', 1: 'covid', 2: 'pneumonia'}
+
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-d", "--images", required=True, help="path to input image directory")
+args = vars(ap.parse_args())
 
 
 def balance_classes(class_features, class_targets):
@@ -23,15 +27,15 @@ def balance_classes(class_features, class_targets):
     return features, targets
 
 
-def build_dataset(dataset_name):
-    print('Building dataset from', dataset_name)
+def build_dataset(images_path):
+    print('Building dataset from', images_path)
 
     # Load images and their class into features and targets
     class_features = {0: [], 1: [], 2: []}
     class_targets = {0: [], 1: [], 2: []}
     for c in CLASSES.keys():
         print('Building class:', CLASSES[c])
-        dir_path = IMG_PATH + dataset_name + "/" + CLASSES[c]
+        dir_path = images_path + "/" + CLASSES[c]
         for file in tqdm(os.listdir(dir_path)):
             image = cv2.imread(dir_path + "/" + str(file))
             if image is not None:
@@ -44,7 +48,7 @@ def build_dataset(dataset_name):
     n_samples = len(features)
     test_size = int(n_samples * TEST_SPLIT)
     train_size = n_samples - test_size
-    print("Size of dataset " + dataset_name + ":", n_samples)
+    print("Size of dataset " + images_path + ":", n_samples)
 
     # Shuffle features and targets
     features_shuf = []
@@ -65,12 +69,10 @@ def build_dataset(dataset_name):
     print()
 
     # Save arrays
-    np.save(BUILD_PATH + dataset_name + "/test_features", test_features)
-    np.save(BUILD_PATH + dataset_name + "/test_targets", test_targets)
-    np.save(BUILD_PATH + dataset_name + "/train_features", train_features)
-    np.save(BUILD_PATH + dataset_name + "/train_targets", train_targets)
+    np.save(BUILD_PATH + "/test_features", test_features)
+    np.save(BUILD_PATH + "/test_targets", test_targets)
+    np.save(BUILD_PATH + "/train_features", train_features)
+    np.save(BUILD_PATH + "/train_targets", train_targets)
 
 
-if __name__ == "__main__":
-    for name in DATASETS:
-        build_dataset(name)
+build_dataset(args['images'])

@@ -1,4 +1,6 @@
-import matplotlib.pyplot as plt
+# USAGE
+# python svm.py --dataset [dataset path]
+
 import numpy as np
 from sklearn import svm, metrics
 import argparse
@@ -7,7 +9,7 @@ import plot
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-d", "--dataset", required=True, help="path to input dataset")
+ap.add_argument("-d", "--dataset", default='datasets', help="path to input dataset")
 args = vars(ap.parse_args())
 
 train_features = np.load(args['dataset'] + "/train_features.npy")

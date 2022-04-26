@@ -1,7 +1,5 @@
 # USAGE
-# python VGG16_CNN.py --dataset datasets/kaggle                
-# python VGG16_CNN.py --dataset datasets/covid-chestxray-dataset
-# python VGG16_CNN.py --dataset datasets/combined
+# python VGG16_CNN.py --dataset [dataset path]
 
 # import the necessary packages
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -20,7 +18,7 @@ import plot
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-d", "--dataset", required=True, help="path to input dataset")
+ap.add_argument("-d", "--dataset", default='datasets', help="path to input dataset")
 ap.add_argument("-m", "--model", type=str, default="covid19.model", help="path to output loss/accuracy plot")
 args = vars(ap.parse_args())
 

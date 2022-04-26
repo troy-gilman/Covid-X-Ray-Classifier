@@ -2,44 +2,44 @@ import os
 import numpy as np
 from random import shuffle
 import cv2
+from tqdm import tqdm
 
 TEST_SPLIT = 0.2
 IMG_RES = (224, 224)
-DATASETS = ["kaggle", "covid-chestxray-dataset"]
+DATASETS = ["kaggle"]
 IMG_PATH = "images/"
 BUILD_PATH = "datasets/"
-CLASSES = {0: 'normal', 1: 'covid'}
+CLASSES = {0: 'normal', 1: 'covid', 2: 'pneumonia'}
 
 
-def build_dataset(dataset_name="combined"):
+def balance_classes(class_features, class_targets):
     features = []
     targets = []
+    min_class_count = min([len(class_x) for class_x in class_features.values()])
+    for i in class_features.keys():
+        print('Samples removed from class', CLASSES[i] + ':', len(class_features[i][min_class_count:]))
+        features += class_features[i][:min_class_count]
+        targets += class_targets[i][:min_class_count]
+    return features, targets
 
-    if dataset_name == "combined":
-        dataset_list = DATASETS
-    else:
-        dataset_list = [dataset_name]
+
+def build_dataset(dataset_name):
+    print('Building dataset from', dataset_name)
 
     # Load images and their class into features and targets
-    for dataset in dataset_list:
-        class_features = {0: [], 1: []}
-        class_targets = {0: [], 1: []}
-        for c in CLASSES.keys():
-            dir_path = IMG_PATH + dataset + "/" + CLASSES[c]
-            for file in os.listdir(dir_path):
-                image = cv2.imread(dir_path + "/" + str(file))
-                # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    class_features = {0: [], 1: [], 2: []}
+    class_targets = {0: [], 1: [], 2: []}
+    for c in CLASSES.keys():
+        print('Building class:', CLASSES[c])
+        dir_path = IMG_PATH + dataset_name + "/" + CLASSES[c]
+        for file in tqdm(os.listdir(dir_path)):
+            image = cv2.imread(dir_path + "/" + str(file))
+            if image is not None:
                 image = cv2.resize(image, IMG_RES)
                 class_features[c].append(image)
                 class_targets[c].append(c)
 
-        min_class_count = min(len(class_features[0]), len(class_features[1]))
-        class_features[0] = class_features[0][:min_class_count]
-        class_targets[0] = class_targets[0][:min_class_count]
-        class_features[1] = class_features[1][:min_class_count]
-        class_targets[1] = class_targets[1][:min_class_count]
-        features += class_features[0] + class_features[1]
-        targets += class_targets[0] + class_targets[1]
+    features, targets = balance_classes(class_features, class_targets)
 
     n_samples = len(features)
     test_size = int(n_samples * TEST_SPLIT)
@@ -73,5 +73,4 @@ def build_dataset(dataset_name="combined"):
 
 if __name__ == "__main__":
     for name in DATASETS:
-        build_dataset(dataset_name=name)
-    build_dataset()
+        build_dataset(name)

@@ -1,18 +1,23 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import svm, metrics
+import argparse
 
-dataset_path = "datasets/combined/"
 
-train_features = np.load(dataset_path + "train_features.npy")
-train_targets = np.load(dataset_path + "train_targets.npy")
-test_features = np.load(dataset_path + "test_features.npy")
-test_targets = np.load(dataset_path + "test_targets.npy")
+# construct the argument parser and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-d", "--dataset", required=True, help="path to input dataset")
+args = vars(ap.parse_args())
+
+train_features = np.load(args['dataset'] + "/train_features.npy")
+train_targets = np.load(args['dataset'] + "/train_targets.npy")
+test_features = np.load(args['dataset'] + "/test_features.npy")
+test_targets = np.load(args['dataset'] + "/test_targets.npy")
 
 
 def run_svm(train_set, test_set):
-    print("Size of train dataset: ", train_set[0].shape[0])
-    print("Size of test dataset: ", test_set[0].shape[0])
+    print("[INFO] Size of train dataset: ", train_set[0].shape[0])
+    print("[INFO] Size of test dataset: ", test_set[0].shape[0])
 
     # Create a classifier: a support vector classifier
     classifier = svm.SVC(kernel="poly", degree=6)
@@ -31,13 +36,23 @@ def run_svm(train_set, test_set):
 
     # show the confusion matrix, accuracy, sensitivity, and specificity
     # print(cm)
-    print("acc: {:.4f}".format(acc))
-    print("sensitivity: {:.4f}".format(sensitivity))
-    print("specificity: {:.4f}".format(specificity))
+    print("[INFO] Accuracy: {:.4f}".format(acc))
+    print("[INFO] Sensitivity: {:.4f}".format(sensitivity))
+    print("[INFO] Specificity: {:.4f}".format(specificity))
     print()
+    return acc
 
 
-run_svm((train_features[:5], train_targets[:5]), (test_features, test_targets))
-run_svm((train_features[5:15], train_targets[5:15]), (test_features, test_targets))
-run_svm((train_features[15:115], train_targets[15:115]), (test_features, test_targets))
-run_svm((train_features[115:315], train_targets[115:315]), (test_features, test_targets))
+accuracies = {}
+accuracies[20] = run_svm([train_features[:20], train_targets[:20]], [test_features, test_targets])
+accuracies[50] = run_svm([train_features[20:70], train_targets[20:70]], [test_features, test_targets])
+accuracies[100] = run_svm([train_features[70:170], train_targets[70:170]], [test_features, test_targets])
+
+plt.figure()
+plt.plot(accuracies.keys(), accuracies.values())
+plt.scatter(accuracies.keys(), accuracies.values(), label="val_acc")
+plt.title("Validation Accuracy on COVID-19 Dataset")
+plt.xlabel("# Training Samples")
+plt.ylabel("Accuracy")
+plt.legend(loc="upper left")
+plt.savefig('svm_acc_plot.png')

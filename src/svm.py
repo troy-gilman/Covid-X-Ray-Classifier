@@ -45,7 +45,7 @@ def run_svm(train_set, test_set):
     print("[INFO] Sensitivity: {:.4f}".format(sensitivity))
     print("[INFO] Specificity: {:.4f}".format(specificity))
 
-    plot.plot_cm('plots/svm_' + str(train_set_n) + '_cm.png', train_set_n, cm)
+    plot.plot_cm('media/svm_' + str(train_set_n) + '_cm.png', train_set_n, cm)
 
     print()
     return acc
@@ -57,4 +57,4 @@ accuracies[50] = run_svm([train_features[20:70], train_targets[20:70]], [test_fe
 accuracies[200] = run_svm([train_features[70:270], train_targets[70:270]], [test_features, test_targets])
 accuracies[500] = run_svm([train_features[270:770], train_targets[270:770]], [test_features, test_targets])
 
-plot.plot_acc('plots/svm_acc_plot.png', 'SVM', accuracies)
+plot.plot_acc('media/svm_acc_plot.png', 'SVM', accuracies)

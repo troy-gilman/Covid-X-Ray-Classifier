@@ -1,5 +1,5 @@
 # USAGE
-# python VGG16_CNN.py --dataset [dataset path]
+# python cnn.py --dataset [dataset path]
 
 # import the necessary packages
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -37,15 +37,11 @@ test_targets = np.load(args['dataset'] + "/test_targets.npy")[:100]
 def run_cnn(train_set, test_set):
 	train_set_n = train_set[0].shape[0]
 	test_set_n = test_set[0].shape[0]
-	print('[INFO] Train set size:', train_set_n)
-	print('[INFO] Test set size:', test_set_n)
 
 	# perform one-hot encoding on the labels
 	lb = LabelBinarizer()
 	train_set[1] = lb.fit_transform(train_set[1])
-	# train_set[1] = to_categorical(train_set[1])
 	test_set[1] = lb.fit_transform(test_set[1])
-	# test_set[1] = to_categorical(test_set[1])
 
 	# load the VGG16 network, ensuring the head FC layer sets are left off
 	base_model = VGG16(weights="imagenet", include_top=False, input_tensor=Input(shape=(224, 224, 3)))
@@ -73,16 +69,16 @@ def run_cnn(train_set, test_set):
 
 	model.compile(loss="binary_crossentropy", optimizer=opt, metrics=["accuracy"])
 
-	# summarize model
-	# print(model.summary())
-
 	# visualize the model
-	# plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+	# plot_model(model, to_file='media/model_diagram.png', show_shapes=True, show_layer_names=True)
 
 	# initialize the training data augmentation object
 	train_aug = ImageDataGenerator(
 		rotation_range=15,
 		fill_mode="nearest")
+
+	print('[INFO] Train set size:', train_set_n)
+	print('[INFO] Test set size:', test_set_n)
 
 	# train the head of the network
 	print("[INFO] Training head...")
@@ -121,7 +117,7 @@ def run_cnn(train_set, test_set):
 
 	# plot the training loss and accuracy
 	plot.plot_epochs(
-		'plots/cnn_' + str(train_set_n) + '_plot.png',
+		'media/cnn_' + str(train_set_n) + '_plot.png',
 		train_set_n,
 		np.arange(1, EPOCHS + 1),
 		H.history["loss"],
@@ -129,7 +125,7 @@ def run_cnn(train_set, test_set):
 		H.history["accuracy"],
 		H.history["val_accuracy"])
 
-	plot.plot_cm('plots/cnn_' + str(train_set_n) + '_cm.png', train_set_n, cm)
+	plot.plot_cm('media/cnn_' + str(train_set_n) + '_cm.png', train_set_n, cm)
 
 	# serialize the model to disk
 	# print("[INFO] Saving COVID-19 detector model...")
@@ -144,4 +140,4 @@ accuracies[50] = run_cnn([train_features[20:70], train_targets[20:70]], [test_fe
 accuracies[200] = run_cnn([train_features[70:270], train_targets[70:270]], [test_features, test_targets])
 accuracies[500] = run_cnn([train_features[270:770], train_targets[270:770]], [test_features, test_targets])
 
-plot.plot_acc('plots/cnn_acc_plot.png', 'CNN', accuracies)
+plot.plot_acc('media/cnn_acc_plot.png', 'CNN', accuracies)

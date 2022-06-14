@@ -1,7 +1,7 @@
 # Covid X-Ray Classifier
 
 ## About
-This project was built by Troy Gilman and Rohit Rajput for the course *Machine Learning/Pattern Recognition* at Northeastern University. The full report for this project can be found at `Covid-Classifier.pdf`.
+This project was built by Troy Gilman and Rohit Rajput for the course *Machine Learning/Pattern Recognition* at Northeastern University. The full report for this project can be found at <a href="Covid-Classifier.pdf">Covid-Classifier.pdf</a>.
 
 ## Instructions
 
